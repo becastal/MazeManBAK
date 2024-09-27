@@ -1,0 +1,21 @@
+projeto pra resolver e criar labirintos em c
+
+funcionalidades:
+
+1. (icaro) resolver um labirinto a partir de uma pos aleatoria nele
+	1.1. resolver com dfs e bfs
+2. (teseu) entrar por um lado do labirinto e sair pelo outro.
+	2.1. resolver com dfs e bfs
+3. (minotauro) comecar de uma posicao, passar por diversos pontos [matando-os] e voltar pra origem
+	2.2. so resolver eh tranquilo,
+	3.2. mas mais maneiro se for fazer com caminho hamiltoniano. ate ~30 pessoas no caso.
+4. (dedalo) criar labirintos pras funcoes anteriores.
+	4.1. prov tenha que aprender um pouco mais sobre percolacao pra gerar aleatoriamente, o que quero a principio
+	4.2. ou se nao vai ser bastante trabalho pra fazer um de maneira editavel pelo usuario. mas boa ideia tbm.
+5. opcoes, pra todos os de cima, em ver o desenvolvimento do caminho. seta pra direita pro futuro e esquerda pra voltar. algum jeito de ver o algoritmo que achou tbm. bem educativo. pra fazer isso, acho que cor no terminal eh uma boa ideia. tenho uma intuicao decente de como fazer.
+
+observacoes:
+
+1. vai ter que implementar queue pra fazer o bfs funcionar. aproveita e ja embala na stack tbm pro dfs. eu acho que eh tudo lista linkada mas so algumas variacoes.
+2. caminho hamiltoniano talvez seja mais dificil de mostrar como foi achado, mas da tambem.
+3. real nao tenho nocao de como fazer 4 funcionar. mas parece maneiro aprender sobre. knuth ama percolacao.
