@@ -16,6 +16,7 @@ int di_1[] = {-1, 1, 0, 0};
 int dj_1[] = {0, 0, 1, -1};
 
 void gera_labirinto() {
+	FILE *arq;
 	srand(time(NULL));
 
 	puts("[+] novo labirinto!");
