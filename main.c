@@ -7,8 +7,9 @@ int main() {
 		puts("[+] menu inicial.");
 		puts("[0] sair.");
 		puts("[1] (dedalo) criar labiririntos.");
+		puts("[1] (teseu) resolver labirintos.");
 
-		printf("[?] selecione uma das opcoes: ");
+		printf("\n[?] selecione uma das opcoes: ");
 		int selecao;
 		scanf("%d", &selecao);
 		switch (selecao) {
@@ -18,6 +19,8 @@ int main() {
 			case 1:
 				gera_labirinto();
 				break;
+			case 2:
+				
 			default:
 				puts("[e] selecao invalida!");
 		}

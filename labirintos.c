@@ -1,11 +1,13 @@
 #include "labirintos.h"
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
+#include <termios.h>
 
 // TODO: talvez visualizar a construcao de cada algoritmo? seria mt maneiro.
-// TODO: talvez visualizar o desenvolvimento do caminho.
+// TODO: talvez visualizar o desenvolvimento do caminho. mais maneiro que o de formar 
 // TODO: ver como srand funciona. se pa que vale fazer srand antes de todo algoritmo.
-// TODO: 
+// TODO: implementar stack e queue. o dfs recursivo da segfault quando n, m > 1e6, talvez seja a recursao.
 
 int dx2[] = {-2, 2, 0, 0};
 int dy2[] = {0, 0, -2, 2};
@@ -81,8 +83,15 @@ void gera_labirinto() {
 	}
 
 	printa_labirinto(novo_labirinto);
-
-	resolve_dfs(&novo_labirinto);
+	
+	getchar();
+	printf("[?] salvar esse arquivo (s/n)? ");
+	char selecao;
+	scanf(" %c", &selecao);
+	
+	if (selecao == 's' || selecao == 'S') {
+		
+	}
 
 	for (int i = 0; i < novo_labirinto.linhas; i++) {
 		free(novo_labirinto.celulas[i]);
@@ -242,7 +251,6 @@ void resolve_dfs(labirinto* L) {
 		for (int i = 0; i < 4; i++) {
 			int nova_posicao_linha = posicao_linha + dx1[i], nova_posicao_coluna = posicao_coluna + dy1[i];
 			if (distancia[nova_posicao_linha][nova_posicao_coluna] + 1 == distancia[posicao_linha][posicao_coluna]) {
-
 				posicao_linha = nova_posicao_linha;
 				posicao_coluna = nova_posicao_coluna;
 				break;
@@ -250,14 +258,36 @@ void resolve_dfs(labirinto* L) {
 		}
 	}
 
-	for (int i = 0; i < L-> linhas; i++) {
-		for (int j = 0; j < L->colunas; j++) {
-			printf("%s", (celulas_resolvido[i][j] == '*' ? "\033[1;31m" : "\033[0m"));
-			printf("%c", celulas_resolvido[i][j]);
+	getchar();
+	int agora = 0, sair = 0;
+	while (!sair) {
+		printf("\033[H\033[J");
+		for (int i = 0; i < L->linhas; i++) {
+			for (int j = 0; j < L->colunas; j++) {
+				printf("%s", (celulas_resolvido[i][j] == '*' ? "\033[1;31m" : "\033[0m"));
+				if (celulas_resolvido[i][j] == '*' && distancia[i][j] > agora) {
+					printf(" ");
+					continue;
+				}
+				printf("%c", celulas_resolvido[i][j]);
+			}
+			puts("");
 		}
-		puts("");
-	}
 
+		printf("...");
+
+		char c = getchar();
+		if (c == '\033') {
+			c = getchar();
+			if (c == '[') {
+				c = getchar();
+				if (c == 'C') agora++;
+				else if (c == 'D') agora--;
+			}
+		}
+
+		if (c == '\n') sair = 1;
+	}
     for (int i = 0; i < L->linhas; i++) {
         free(distancia[i]);
     }
