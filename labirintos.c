@@ -4,10 +4,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <termios.h>
-
 // TODO: talvez visualizar a construcao de cada algoritmo? seria mt maneiro.
 // TODO: talvez visualizar o desenvolvimento do caminho. mais maneiro que o de formar 
-// TODO: ver como srand funciona. se pa que vale fazer srand antes de todo algoritmo.
 // TODO: implementar stack e queue. o dfs recursivo da segfault quando n, m > 1e6, talvez seja a recursao.
 
 int di_2[] = {-2, 2, 0, 0};
@@ -16,29 +14,38 @@ int di_1[] = {-1, 1, 0, 0};
 int dj_1[] = {0, 0, 1, -1};
 
 void gera_labirinto() {
-	FILE *arq;
-	srand(time(NULL));
-
 	puts("[+] novo labirinto!");
 	labirinto novo_labirinto;
 
-	int ok_linhas = 0;	while (!ok_linhas) {
+	// recebendo a quantidade de linhas, que deve ser um inteiro >= 1
+	int ok_linhas = 0;
+	while (!ok_linhas) {
 		printf("[?] indique a quantidade de linhas: ");
 		scanf("%d", &novo_labirinto.linhas);
 
 		ok_linhas = (novo_labirinto.linhas >= 1);
+		if (!ok_linhas) puts("[e] informe um valor inteiro >= 1!");
 	}
-	novo_labirinto.linhas = 2 * novo_labirinto.linhas + 1;
 
+	// recebendo a quantidade de colunas, que deve ser um inteiro >= 1
 	int ok_colunas = 0;
 	while (!ok_colunas) {
 		printf("[?] indique a quantidade de colunas: ");
 		scanf("%d", &novo_labirinto.colunas);
 
 		ok_colunas = (novo_labirinto.colunas >= 1);
+		if (!ok_colunas) puts("[e] informe um valor inteiro >= 1!");
 	}
-	novo_labirinto.colunas = 2 * novo_labirinto.colunas + 1;
 
+	// construindo de fato o labirinto inicial, um pouco de matematica faz o labirinto inicialmente ter
+	// o formato: ####### com a quantidade de celunas nas linhas e nas colunas conforme especificado.
+	//            # # # #
+	//            #######
+	//            # # # #
+	//            ####### ...
+	
+	novo_labirinto.linhas = 2 * novo_labirinto.linhas + 1;
+	novo_labirinto.colunas = 2 * novo_labirinto.colunas + 1;
 	novo_labirinto.celulas = (char**) malloc(novo_labirinto.linhas * sizeof(char*));
 	for (int i = 0; i < novo_labirinto.linhas; i++) {
 		novo_labirinto.celulas[i] = (char*) malloc(novo_labirinto.colunas * sizeof(char));
@@ -47,6 +54,8 @@ void gera_labirinto() {
 	for (int i = 0; i < novo_labirinto.linhas; i++) {
 		for (int j = 0; j < novo_labirinto.colunas; j++) {
 			novo_labirinto.celulas[i][j] = (i & 1 && j & 1 ? ' ' : '#');	
+			// pro formato de xadrez apresentado, as coordenadas das linhas e das colunas devem ser ambas
+			// impares. x & 1 eh a mesma coisa que x % 2 == 1 mas mais maneiro.
 		}
 	}
 
@@ -55,7 +64,7 @@ void gera_labirinto() {
 	puts("[1] algoritmo de sinewinder.");
 	puts("[2] algoritmo de aldous-border.");
 	puts("[3] algoritmo de hunt-and-kill.");
-	//puts("[4] algoritmo de recursive backtracking.");
+	puts("[4] algoritmo de backtracking.");
 
 	int ok_algoritmo = 0;
 	while (!ok_algoritmo) {
@@ -77,15 +86,32 @@ void gera_labirinto() {
 			case 3:
 				algoritmo_hunt_and_kill(&novo_labirinto);
 				break;
+			case 4:
+				algoritmo_backtracking(&novo_labirinto);
+				break;
 			default:
 				puts("[e] selecao invalida!");
 				ok_algoritmo = 0;
 		}
 	}
+	
+	char selecao_pacman;
+	int ok_pacman = 0;
+
+	while (!ok_pacman) {
+		printf("[?] fazer esse labirinto ser decente para pacman (s/n)? ");
+		scanf(" %c", &selecao_pacman);
+
+		ok_pacman = (selecao_pacman == 's' || selecao_pacman == 'S' ||
+					 selecao_pacman == 'n' || selecao_pacman == 'N');
+		if (!ok_linhas) puts("[e] informe 's' ou 'n'.");
+	}
+
+	if (selecao_pacman == 's' || selecao_pacman == 'S') pacmaniza(&novo_labirinto);
 
 	printa_labirinto(novo_labirinto);
-	
-	getchar();
+
+//  FILE* arq;
 //	printf("[?] salvar esse arquivo (s/n)? ");
 //	char selecao;
 //	scanf(" %c", &selecao);
@@ -128,6 +154,7 @@ void printa_labirinto(labirinto L) {
 void algoritmo_binary_tree(labirinto* L) {
 	// pra cada posicao da matriz, tira ou a parede da direita ou a parede de baixo;
 	// complexidade O(nm);
+	srand(time(NULL));
 
 	for (int posicao_linha = 1; posicao_linha < L->linhas; posicao_linha += 2) {
 		for (int posicao_coluna = 1; posicao_coluna < L->colunas; posicao_coluna += 2) {
@@ -151,6 +178,7 @@ void algoritmo_sidewinder(labirinto* L) {
 	// na sequencia (por exemplo, lado -> lado -> direita), ele nao corta a direita da posicao que eu to, mas sim
 	// uma aleatoria do componente conexo anterior;
 	// complexidade O(nm);
+	srand(time(NULL));
 	
     for (int posicao_linha = 1; posicao_linha < L->linhas; posicao_linha += 2) {
         int inicio_run = 1;
@@ -179,6 +207,7 @@ void algoritmo_aldous_border(labirinto* L) {
 	// voce so segue. bizarro tentar achar a complexidade disso. existe um mundo que esse algoritmo nunca acaba;
 	// complexidade: O(sei_la * ruim);
 	// na real a complexidade media fica ~O(nmlogn);
+	srand(time(NULL));
 
     int contador_visitados = 0;
     
@@ -227,6 +256,8 @@ void algoritmo_hunt_and_kill(labirinto* L) {
 	// bem proximo do aldous border, mas ele evita entrar nas que ele ja viu,
 	// buscando uma nao vista antes e recomecando a busca.
 	// complexidade: O(nm);
+	srand(time(NULL));
+
     int contador_visitados = 0;
     
     int** visitado = (int**) malloc(L->linhas * sizeof(int*));
@@ -252,18 +283,26 @@ void algoritmo_hunt_and_kill(labirinto* L) {
         int nova_posicao_coluna = posicao_coluna + dj_2[movimento];
 
 		int hunt_ok = 0;
-		if (direcoes_vistas == 15) { 
-			// todos os bits de direcoes vistas sao 1. ou seja, vi todos os lados e
-			// nao consegui sair. 15 == (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3).
-
-			for (int i = 0; i < L->linhas && !hunt_ok; i += 2) {
-				for (int j = 0; j < L->colunas && !hunt_ok; j += 2) {
+		if (direcoes_vistas == 15) {
+			// todos os bits de direcoes vistas sao 1. ou seja, ja vi todos os lados e
+			// nao consegui sair. esse numero porque 15 == (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3).
+			for (int i = 1; i < L->linhas - 1 && !hunt_ok; i += 2) {
+				for (int j = 1; j < L->colunas - 1 && !hunt_ok; j += 2) {
 					if (!visitado[i][j]) {
-						posicao_linha = i;
-						posicao_coluna = j;
-						hunt_ok = 1;
+						for (int d = 0; d < 4; d++) {
+							int ni = i + di_2[d];
+							int nj = j + dj_2[d];
+							if (posicao_valida(L, ni, nj) && visitado[ni][nj]) {
+								posicao_linha = i;
+								posicao_coluna = j;
+								L->celulas[(i + ni) / 2][(j + nj) / 2] = ' ';
+								hunt_ok = 1;
+								break;
+							}
+						}
 					}
 				}
+				if (hunt_ok) break;
 			}
 		}
 
@@ -295,7 +334,92 @@ void algoritmo_hunt_and_kill(labirinto* L) {
 		free(visitado[i]);
 	}
 	free(visitado);
+}
 
+void algoritmo_backtracking(labirinto* L) {
+	// particularmente acho o mais elegante. bem parecido com dfs, mas cortando o caminho que comeco;
+	// comeco no topo e sigo em direcoes aleatorias. se nao consigo mais sair, volto pra onde foi originado
+	// essa posicao que estou agora (o inicio desse caminho sem volta);
+	// complexidade: O(nm);
+	srand(time(NULL));
+
+    int** visitado = (int**) malloc(L->linhas * sizeof(int*));
+    for (int i = 0; i < L->linhas; i++) {
+        visitado[i] = (int*) malloc(L->colunas * sizeof(int));
+        for (int j = 0; j < L->colunas; j++) {
+            visitado[i][j] = 0;
+        }
+    }
+
+	backtracking(visitado, L, 1, 1);
+
+	for (int i = 0; i < L->linhas; i++) {
+		free(visitado[i]);
+	}
+	free(visitado);
+}
+
+void backtracking(int** visitado, labirinto* L, int linha, int coluna) {
+	visitado[linha][coluna] = 1;
+
+	int direcao[] = {0, 1, 2, 3}; // randomizando a direcao que ele anda a cada passo
+	for (int k = 0; k < 4; k++) {
+		int r = rand() % 4;
+		
+		direcao[k] ^= direcao[r]; // jeito maneiro de trocar os valores no indice [r] e no indice[k]
+		direcao[r] ^= direcao[k]; // com triplo xor. obrigado gabriel santana.
+		direcao[k] ^= direcao[r];
+	}
+
+	for (int k = 0; k < 4; k++) {
+		int movimento = direcao[k];
+		int nova_linha = linha + di_2[movimento];
+		int nova_coluna = coluna + dj_2[movimento];
+
+		if (posicao_valida(L, nova_linha, nova_coluna) && 
+			!visitado[nova_linha][nova_coluna]) {
+			L->celulas[(linha + nova_linha) / 2][(coluna + nova_coluna) / 2] = ' '; 
+			backtracking(visitado, L, nova_linha, nova_coluna);
+		}
+	}
+}
+
+void pacmaniza(labirinto* L) {
+	srand(time(NULL));
+
+	int ok_conectividade = 0, conexoes;
+	while (!ok_conectividade) {
+		printf("[?] indique a quantidade de novas conexoes: ");
+		scanf("%d", &conexoes);
+
+		ok_conectividade = (conexoes >= 1);
+		if (!ok_conectividade) puts("[e] informe um valor inteiro >= 1.");
+	}
+
+	// gerando as novas conexoes;
+	for (int feito = 0; feito < conexoes;) {
+		int linha = posicao_aleatoria(L, 1);
+		int coluna = posicao_aleatoria(L, 0);
+
+		int direcao = rand() % 4;
+
+		int nova_linha = linha + di_1[direcao];
+		int nova_coluna = coluna + dj_1[direcao];
+
+		if (posicao_valida(L, nova_linha, nova_coluna) &&
+			L->celulas[nova_linha][nova_coluna] == '#' &&
+			nova_coluna <= L->colunas) {
+			L->celulas[nova_linha][nova_coluna] = ' ';
+			feito++;
+		}
+	}
+
+	// espelhando o labirinto;
+	for (int i = 0; i < L->linhas; i++) {
+		for (int j = L->colunas-1; j >= L->colunas / 2; j--) {
+			L->celulas[i][j] = L->celulas[i][L->colunas - j - 1];
+		}
+	}
 }
 
 void dfs(int** distancia, labirinto* L, int linha, int coluna) {

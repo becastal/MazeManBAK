@@ -29,6 +29,9 @@ void algoritmo_binary_tree(labirinto* L);
 void algoritmo_sidewinder(labirinto* L);
 void algoritmo_aldous_border(labirinto* L);
 void algoritmo_hunt_and_kill(labirinto* L);
+void algoritmo_backtracking(labirinto* L);
+void pacmaniza(labirinto* L);
+void backtracking(int** visitado, labirinto* L, int linha, int coluna); 
 void dfs(int** distancia, labirinto* L, int linha, int coluna);
 void resolve_dfs(labirinto* L);
 
