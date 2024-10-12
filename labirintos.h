@@ -5,6 +5,8 @@
 typedef struct {
 	int linhas, colunas;
 	char** celulas;
+	int** distancia;
+	int** ordem;
 } labirinto;
 
 typedef struct {
@@ -34,5 +36,6 @@ void pacmaniza(labirinto* L);
 void backtracking(int** visitado, labirinto* L, int linha, int coluna); 
 void dfs(int** distancia, labirinto* L, int linha, int coluna);
 void resolve_dfs(labirinto* L);
+void resolve_bfs(labirinto* L);
 
 #endif

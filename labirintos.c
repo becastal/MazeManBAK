@@ -1,4 +1,5 @@
 #include "labirintos.h"
+#include "estruturas.h"
 //#include "arquivos.h"
 #include <stdlib.h>
 #include <time.h>
@@ -109,7 +110,8 @@ void gera_labirinto() {
 
 	if (selecao_pacman == 's' || selecao_pacman == 'S') pacmaniza(&novo_labirinto);
 
-	printa_labirinto(novo_labirinto);
+	//printa_labirinto(novo_labirinto);
+	resolve_dfs(&novo_labirinto);
 
 //  FILE* arq;
 //	printf("[?] salvar esse arquivo (s/n)? ");
@@ -422,77 +424,93 @@ void pacmaniza(labirinto* L) {
 	}
 }
 
-void dfs(int** distancia, labirinto* L, int linha, int coluna) {
-	for (int i = 0; i < 4; i++) {
-		int nova_linha = linha + di_1[i], nova_coluna = coluna + dj_1[i];
-		if (posicao_valida(L, nova_linha, nova_coluna) && 
-			distancia[nova_linha][nova_coluna] == -1   &&
-			L->celulas[nova_linha][nova_coluna] != '#') {
-			distancia[nova_linha][nova_coluna] = distancia[linha][coluna] + 1;
-			dfs(distancia, L, nova_linha, nova_coluna);
+void resolve_bfs(labirinto* L) {
+	L->distancia = (int**) malloc(L->linhas * sizeof(int*));
+	for (int i = 0; i < L->linhas; i++) {
+		L->distancia[i] = (int*) malloc(L->colunas * sizeof(int));
+		for (int j = 0; j < L->colunas; j++) {
+			L->distancia[i][j] = -1;
 		}
 	}
+	L->distancia[1][1] = 0;
+
+	Fila* F = Fila_();
+	Fila_insere(F, 1, 1);
+	while (!Fila_vazia(F)) {
+		Nodo* agora = Fila_frente(F);
+		int linha = agora->linha, coluna = agora->coluna;
+		Fila_tira(F);
+
+		for (int direcao = 0; direcao < 4; direcao++) {
+			int nova_linha = linha + di_1[direcao], nova_coluna = coluna + dj_1[direcao];
+
+			if (posicao_valida(L, nova_linha, nova_coluna) &&
+				L->celulas[nova_linha][nova_coluna] != '#' &&
+				L->distancia[nova_linha][nova_coluna] == -1) {
+
+				L->distancia[nova_linha][nova_coluna] = L->distancia[linha][coluna] + 1;
+				Fila_insere(F, nova_linha, nova_coluna);		
+			}
+		}
+	}
+
+	L->ordem = (int**)malloc(L->linhas * sizeof(int*));
+	for (int i = 0; i < L-> linhas; i++) {
+		L->ordem[i] = (int*)malloc(L->colunas * sizeof(int));
+		for (int j = 0; j < L->colunas; j++) {
+			L->ordem[i][j] = L->distancia[i][j];
+		}
+	}
+
+	free(F);
+	for (int i = 0; i < L->linhas; i++) {
+		free(L->distancia[i]);
+		free(L->ordem[i]);
+	}
+	free(L->distancia);
+	free(L->ordem);
 }
 
 void resolve_dfs(labirinto* L) {
-	int** distancia = (int**) malloc(L->linhas * sizeof(int*));
-	for (int i = 0; i < L->linhas; i++) {
-		distancia[i] = (int*) malloc(L->colunas * sizeof(int));
-		for (int j = 0; j < L->colunas; j++) {
-			distancia[i][j] = -1;
-		}
-	}
-
-	distancia[1][1] = 0;
-	dfs(distancia, L, 1, 1);
-
-	char** celulas_resolvido = L->celulas;
-	int posicao_linha = L->linhas - 2, posicao_coluna = L->colunas - 2;
-	while (distancia[posicao_linha][posicao_coluna] >= 0) {
-		celulas_resolvido[posicao_linha][posicao_coluna] = '*';
-		
-		for (int i = 0; i < 4; i++) {
-			int nova_posicao_linha = posicao_linha + di_1[i], nova_posicao_coluna = posicao_coluna + dj_1[i];
-			if (distancia[nova_posicao_linha][nova_posicao_coluna] + 1 == distancia[posicao_linha][posicao_coluna]) {
-				posicao_linha = nova_posicao_linha;
-				posicao_coluna = nova_posicao_coluna;
-				break;
-			}
-		}
-	}
-
-	getchar();
-	int agora = 0, sair = 0;
-	while (!sair) {
-		printf("\033[H\033[J");
-		for (int i = 0; i < L->linhas; i++) {
-			for (int j = 0; j < L->colunas; j++) {
-				printf("%s", (celulas_resolvido[i][j] == '*' ? "\033[1;31m" : "\033[0m"));
-				if (celulas_resolvido[i][j] == '*' && distancia[i][j] > agora) {
-					printf(" ");
-					continue;
-				}
-				printf("%c", celulas_resolvido[i][j]);
-			}
-			puts("");
-		}
-
-		printf("...");
-
-		char c = getchar();
-		if (c == '\033') {
-			c = getchar();
-			if (c == '[') {
-				c = getchar();
-				if (c == 'C') agora++;
-				else if (c == 'D') agora--;
-			}
-		}
-
-		if (c == '\n') sair = 1;
-	}
+    L->distancia = (int**)malloc(L->linhas * sizeof(int*));
+    L->ordem = (int**)malloc(L->linhas * sizeof(int*));
     for (int i = 0; i < L->linhas; i++) {
-        free(distancia[i]);
+        L->distancia[i] = (int*)malloc(L->colunas * sizeof(int));
+        L->ordem[i] = (int*)malloc(L->colunas * sizeof(int));
+        for (int j = 0; j < L->colunas; j++) {
+            L->distancia[i][j] = -1;
+            L->ordem[i][j] = -1;
+        }
     }
-    free(distancia);
+    L->distancia[1][1] = 0;
+    int quantidade_vistos = 0;
+
+    Pilha* P = Pilha_();
+    Pilha_insere(P, 1, 1);
+    while (!Pilha_vazia(P)) {
+        Nodo* agora = Pilha_topo(P);
+        int linha = agora->linha, coluna = agora->coluna;
+        Pilha_tira(P);
+        L->ordem[linha][coluna] = quantidade_vistos++;
+
+        for (int direcao = 0; direcao < 4; direcao++) {
+            int nova_linha = linha + di_1[direcao], nova_coluna = coluna + dj_1[direcao];
+
+            if (posicao_valida(L, nova_linha, nova_coluna) &&
+                L->celulas[nova_linha][nova_coluna] != '#' &&
+                L->distancia[nova_linha][nova_coluna] == -1) {
+
+                L->distancia[nova_linha][nova_coluna] = L->distancia[linha][coluna] + 1;
+                Pilha_insere(P, nova_linha, nova_coluna);        
+            }
+        }
+    }
+
+    for (int i = 0; i < L->linhas; i++) {
+        free(L->distancia[i]);
+        free(L->ordem[i]);
+    }
+    free(L->distancia);
+    free(L->ordem);
 }
+
